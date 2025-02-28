@@ -1,0 +1,117 @@
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>روليت الجوائز</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            color: #333;
+        }
+        #wheel {
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+            border-radius: 50%;
+            border: 5px solid #333;
+            position: relative;
+            overflow: hidden;
+        }
+        #pointer {
+            width: 0; 
+            height: 0; 
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 30px solid red;
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        #spinBtn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        #spinBtn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>جرب حظك في الروليت</h1>
+    <div id="wheel">
+        <div id="pointer"></div>
+        <canvas id="canvas" width="300" height="300"></canvas>
+    </div>
+    <button id="spinBtn">اضغط لتدوير العجلة</button>
+    <h2 id="result"></h2>
+
+    <script>
+        const prizes = ["جائزة 1", "جائزة 2", "جائزة 3", "جائزة 4", "جائزة 5", "حظ أوفر"];
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const spinBtn = document.getElementById("spinBtn");
+        const resultText = document.getElementById("result");
+
+        // التحقق مما إذا كان المستخدم قد لف مسبقًا
+        if (localStorage.getItem("spun") === "true") {
+            spinBtn.disabled = true;
+            resultText.innerText = "لقد جربت حظك بالفعل!";
+        }
+
+        function drawWheel() {
+            const sections = prizes.length;
+            const angleStep = (2 * Math.PI) / sections;
+            for (let i = 0; i < sections; i++) {
+                ctx.beginPath();
+                ctx.moveTo(150, 150);
+                ctx.arc(150, 150, 150, i * angleStep, (i + 1) * angleStep);
+                ctx.fillStyle = i % 2 === 0 ? "#ffcc00" : "#ff6600";
+                ctx.fill();
+                ctx.stroke();
+                ctx.closePath();
+                
+                ctx.save();
+                ctx.translate(150, 150);
+                ctx.rotate(i * angleStep + angleStep / 2);
+                ctx.fillStyle = "#000";
+                ctx.font = "16px Arial";
+                ctx.fillText(prizes[i], 50, 10);
+                ctx.restore();
+            }
+        }
+
+        function spinWheel() {
+            if (localStorage.getItem("spun") === "true") {
+                return;
+            }
+
+            let spinAngle = Math.floor(Math.random() * 360) + 720; // تدوير أكثر من دورتين
+            canvas.style.transform = `rotate(${spinAngle}deg)`;
+            spinBtn.disabled = true;
+
+            setTimeout(() => {
+                let selectedPrize = prizes[Math.floor((spinAngle % 360) / (360 / prizes.length))];
+                resultText.innerText = `مبروك! حصلت على: ${selectedPrize}`;
+                localStorage.setItem("spun", "true"); // حفظ المحاولة
+            }, 3000);
+        }
+
+        drawWheel();
+        spinBtn.addEventListener("click", spinWheel);
+    </script>
+</body>
+</html>
